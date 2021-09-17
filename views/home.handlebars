@@ -7,20 +7,26 @@
 
 
 <form method="post">
-  <div class="firstName">
-    <label for="firstName">First name: </label>
-    <input type="text" name="firstName" id="firstName" required>
-  </div>
-  <div class="lastName">
-    <label for="lastName">Last name: </label>
-    <input type="text" name="lastName" id="lastName" required>
-  </div>
-  <div class="signature">
-    <label for="signature">Draw your signature: </label>
-    <input type="text" name="signature" id="signature" required>
-  </div>
+    <div class="firstName">
+        <label for="firstName">First name: </label>
+        <input type="text" name="firstName" id="firstName" required>
+    </div>
+    <div class="lastName">
+        <label for="lastName">Last name: </label>
+        <input type="text" name="lastName" id="lastName" required>
+    </div>
+    <div class="signature">
+        <label for="signature">Signature: </label>
+        <input type="hidden" type="text" name="signature" id="signature" required>
+    </div>
 
-  <div class="submitBtn">
-    <input type="submit" value="Submit!">
-  </div>
+    <canvas id="canv" width="600" height="200"></canvas>
+
+    <div class="submitBtn">
+        <input type="submit" value="Submit!">
+    </div>
 </form>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<script src="/script.js"></script>

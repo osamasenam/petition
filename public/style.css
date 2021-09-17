@@ -11,3 +11,12 @@ body {
     width: 30%;
     height: 30%;
 } */
+
+#canv {
+    /* position: absolute; */
+    background-color:gold ;
+    /* z-index: 2; */
+    left: 0;
+    top: 0;
+    /* display: none; */
+}

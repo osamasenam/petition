@@ -11,7 +11,15 @@ app.set("view engine", "handlebars")
 // for serving files inside public
 app.use(express.static("public"))
 
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+    secret: `I'm always angry.`,
+    maxAge: 1000 * 60 * 60 * 24 * 14
+}));
+
 const db = require("./db.js");
+let tempCookie;
+let sigValue;
 
 // first route to show the homepage
 app.get("/petition", (req, res) => {
@@ -30,12 +38,27 @@ app.post("/petition", (req, res) => {
     const lastName = req.body.lastName;
     const signature = req.body.signature;
     
-    console.log("req: ", req.body);
+    // console.log("req: ", req.body);
 
     db.addSigner(firstName, lastName, signature)
         .then(() => {
-            // ** set cookie to remember that the user has signed
-            
+            // get now the id given to this last added row
+            db.getSigners()
+                .then((dbResults) => {
+                    const allSigners = dbResults.rows;
+                    const lastId = allSigners[allSigners.length-1].id;
+                    console.log("lastId: ", lastId);
+                    // ** set cookie to remember that the user has signed
+                    req.session.signatureId = "lastId";
+                    tempCookie = lastId;
+                    // res.sendStatus(200);
+                    // console.log("req",req);
+                })
+                .catch((err) => {
+                    console.log("err in db.getSigners: ", err);
+                    // in case problem happened >>>> try again to load signers list
+                    // res.redirect("/signers");
+                });
 
             console.log("one more signer added to signers table in petition db");
             res.redirect("/thanks");
@@ -53,13 +76,29 @@ app.post("/petition", (req, res) => {
 
 // third route to show list of all signers
 app.get("/thanks", (req, res) => {
+    console.log("tempCookie",tempCookie);
     // ** check IF the user has not signed the petition >> redirect to /petition
+    if(tempCookie === undefined) {
+        res.redirect("/petition");
+    } else {
 
-    res.render("thanks", {
-        layout: "main",
-        headerMessage: "Thank you!",
-        title: "Petition"
-    })
+        db.getId(tempCookie)
+        .then((dbResults) => {
+            sigValue = dbResults.rows[0].signature;
+            // console.log("dbResults",dbResults.rows);
+            console.log("sigValue",sigValue);
+            res.render("thanks", {
+                sigValue,
+                layout: "main",
+                headerMessage: "Thank you!",
+                title: "Petition"
+            });
+        })
+        .catch((err) => {
+            console.log("err in db.getId: ", err);
+        });
+        
+    }
 });
 
 // fourth route to show list of all signers
@@ -70,7 +109,7 @@ app.get("/signers", (req, res) => {
         .then((dbResults) => {
             const allSigners = dbResults.rows;
             const totalNum = allSigners.length;
-            console.log("all signers in db: ", allSigners);
+            // console.log("all signers in db: ", allSigners);
             res.render("signers", {
                 allSigners,
                 totalNum,

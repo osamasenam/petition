@@ -8,6 +8,11 @@ const db = spicedPg(
 
 console.log(`db connecting to: ${database}`);
 
+module.exports.getId = (idVal) => {
+    const q = `SELECT signature FROM signers WHERE id=${idVal}`;
+    return db.query(q);
+};
+
 module.exports.getSigners = () => {
     const q = `SELECT * FROM signers`;
     return db.query(q);
