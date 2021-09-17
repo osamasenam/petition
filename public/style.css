@@ -1,0 +1,13 @@
+body {
+    background-color: magenta;
+}
+
+.thanks a {
+    font-size: 30px;   
+    font-weight: bold; 
+}
+
+/* .intro img {
+    width: 30%;
+    height: 30%;
+} */
