@@ -18,7 +18,7 @@ app.use(cookieSession({
 }));
 
 const db = require("./db.js");
-let tempCookie;
+// let tempCookie;
 let sigValue;
 
 // first route to show the homepage
@@ -38,55 +38,67 @@ app.post("/petition", (req, res) => {
     const lastName = req.body.lastName;
     const signature = req.body.signature;
     
-    // console.log("req: ", req.body);
-
-    db.addSigner(firstName, lastName, signature)
-        .then(() => {
-            // get now the id given to this last added row
-            db.getSigners()
-                .then((dbResults) => {
-                    const allSigners = dbResults.rows;
-                    const lastId = allSigners[allSigners.length-1].id;
-                    console.log("lastId: ", lastId);
-                    // ** set cookie to remember that the user has signed
-                    req.session.signatureId = "lastId";
-                    tempCookie = lastId;
-                    // res.sendStatus(200);
-                    // console.log("req",req);
-                })
-                .catch((err) => {
-                    console.log("err in db.getSigners: ", err);
-                    // in case problem happened >>>> try again to load signers list
-                    // res.redirect("/signers");
-                });
-
-            console.log("one more signer added to signers table in petition db");
-            res.redirect("/thanks");
+    // console.log("signature", typeof signature, signature.length);
+    if(signature.length === 0) {
+        console.log("Error: Missing signature");
+        res.render("home", {
+            layout: "main",
+            headerMessage: "Error: Missing signature!",
+            title: "Petition"
         })
-        // in case problem occured while writing to db >>>> show again the petition page
-        .catch((err) => {
-            console.log("err in db.addSigner: ", err);
-            res.render("home", {
-                layout: "main",
-                headerMessage: "Error occured in DB: please submit again!",
-                title: "Petition"
+    } else {
+
+        db.addSigner(firstName, lastName, signature)
+            .then(() => {
+                // get now the id given to this last added row
+                db.getSigners()
+                    .then((dbResults) => {
+                        const allSigners = dbResults.rows;
+                        const lastId = allSigners[allSigners.length-1].id;
+                        // console.log("lastId: ", lastId);
+                        // ** set cookie to remember that the user has signed
+                        // tempCookie = lastId;
+
+                        req.session.signatureId = lastId;
+                        console.log("req.session.signatureId",req.session.signatureId);
+                    
+                        console.log("one more signer added to signers table in petition db");
+                        res.redirect("/thanks");
+                    })
+                    .catch((err) => {
+                        console.log("err in db.getSigners: ", err);
+                        // in case problem happened >>>> try again to load signers list
+                        // res.redirect("/signers");
+                    });
+
+                
             })
-        });
+            // in case problem occured while writing to db >>>> show again the petition page
+            .catch((err) => {
+                console.log("err in db.addSigner: ", err);
+                res.render("home", {
+                    layout: "main",
+                    headerMessage: "Error occured in DB: please submit again!",
+                    title: "Petition"
+                })
+            });
+    }
 });
 
 // third route to show list of all signers
 app.get("/thanks", (req, res) => {
-    console.log("tempCookie",tempCookie);
+    console.log("/thanks: req.session.signatureId",req.session.signatureId);
+    // console.log("tempCookie",tempCookie);
     // ** check IF the user has not signed the petition >> redirect to /petition
-    if(tempCookie === undefined) {
+    if(req.session.signatureId === undefined) {
         res.redirect("/petition");
     } else {
 
-        db.getId(tempCookie)
+        db.getId(req.session.signatureId)
         .then((dbResults) => {
             sigValue = dbResults.rows[0].signature;
             // console.log("dbResults",dbResults.rows);
-            console.log("sigValue",sigValue);
+            // console.log("sigValue",sigValue);
             res.render("thanks", {
                 sigValue,
                 layout: "main",
@@ -104,8 +116,10 @@ app.get("/thanks", (req, res) => {
 // fourth route to show list of all signers
 app.get("/signers", (req, res) => {
     // ** check IF the user has not signed the petition >> redirect to /petition
-
-    db.getSigners()
+    if(req.session.signatureId === undefined) {
+        res.redirect("/petition");
+    } else {
+        db.getSigners()
         .then((dbResults) => {
             const allSigners = dbResults.rows;
             const totalNum = allSigners.length;
@@ -123,6 +137,10 @@ app.get("/signers", (req, res) => {
             // in case problem happened >>>> try again to load signers list
             res.redirect("/signers");
         });
+        
+    }
+
+
 });
 
 
