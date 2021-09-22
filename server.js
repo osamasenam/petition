@@ -32,8 +32,14 @@ app.get("/petition", (req, res) => {
         db.getSignature(req.session.userId)
         .then((dbResults) => {
 
-            if(dbResults.rows[0].signature === undefined) {
+            if(dbResults.rows.length === 0) {
                 console.log("empty rows");
+                // if no signature found in DB >>>> direct the user to sign 
+                res.render("home", {
+                    layout: "main",
+                    headerMessage: "Welcome to My Petition Page",
+                    title: "Petition"
+                })
             } else {
                 console.log("signature exists");
                 console.log("Here means the user has signed already");
@@ -43,12 +49,6 @@ app.get("/petition", (req, res) => {
         })
         .catch((err) => {
             console.log("No Signature found: ", err);
-            // if no signature found in DB >>>> direct the user to sign 
-            res.render("home", {
-                layout: "main",
-                headerMessage: "Welcome to My Petition Page",
-                title: "Petition"
-            })
         }); 
     }
 })
@@ -269,9 +269,10 @@ app.post("/login", (req, res) => {
 
 // 9th logout : clear cookies & redirect to /login page 
 app.get("/logout", (req, res) => {
-    delete req.session.userId;
+    req.session = null;
+    // delete req.session.userId;
     res.redirect("/login");
 })
 
 
-app.listen(8080, () => console.log("petition server is listening..."));
+app.listen(process.env.PORT || 8080, () => console.log("petition server is listening..."));

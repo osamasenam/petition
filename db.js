@@ -1,10 +1,22 @@
 const spicedPg = require("spiced-pg");
-const { dbUserName, dbPassword} = require("./secrets.json");
+// const { dbUserName, dbPassword} = require("./secrets.json");
 const database = "petition";
 
-const db = spicedPg(
-    `postgres:${dbUserName}:${dbPassword}@localhost:5432/${database}`
-);
+// const db = spicedPg(
+//     process.env.DATABASE_URL ||
+//     `postgres:${dbUserName}:${dbPassword}@localhost:5432/${database}`
+// );
+
+let db;
+if(process.env.DATABASE_URL) {
+    db = spicedPg(process.env.DATABASE_URL);
+} else {
+    // we are running our app locally
+    const { dbUserName, dbPassword} = require("./secrets.json");
+    db = spicedPg(
+        `postgres:${dbUserName}:${dbPassword}@localhost:5432/${database}`
+    );
+}
 
 console.log(`db connecting to: ${database}`);
 

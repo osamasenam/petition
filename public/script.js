@@ -6,8 +6,11 @@ const ctx = can.getContext('2d');
     
 // let sig;
 
-can1.on("mousedown", function() {
+can1.on("mousedown", function(e) {
     console.log("mousemove running");
+    // updating position
+    currentX = e.clientX;
+    currentY = e.clientY;
     can1.on("mousemove", draw);
 });
 
@@ -19,17 +22,19 @@ can1.on("mouseup", function () {
 });
 
 function draw (e) {
-  
-    currentX = e.clientX;
-    currentY = e.clientY;
+    console.log("drawing now");
     
     ctx.beginPath(); 
-
+    ctx.moveTo(currentX - can.getBoundingClientRect().left, currentY - can.getBoundingClientRect().top);
     ctx.lineWidth = 5;
     ctx.strokeStyle = 'blue';
     // why the default 'butt' does not draw anything?!
-    ctx.lineCap = 'round';
-
+    // ctx.lineCap = 'round'; // it allows drawing points
+    
+    // updating position
+    currentX = e.clientX;
+    currentY = e.clientY;
+    
     // the drawing coordinates are relative to the canvas element
     ctx.lineTo(currentX - can.getBoundingClientRect().left, currentY - can.getBoundingClientRect().top); 
 
