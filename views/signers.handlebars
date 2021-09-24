@@ -3,7 +3,12 @@
     {{#allSigners}}
         <ul>
             <li>
-                <h1>{{first_name}} {{last_name}}</h1>
+                {{#if url}}
+                    <h1><a href={{url}}>{{first}} {{last}}</a> {{age}} <a href=/signers/{{city}}>{{city}}</a></h1>
+                {{else}}
+                    <h1>{{first}} {{last}} {{age}} <a href=/signers/{{city}}>{{city}}</a></h1>
+                {{/if}}
+                    
             </li>
         </ul>
     {{/allSigners}}

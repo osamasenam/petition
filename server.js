@@ -22,6 +22,11 @@ const bc = require("./bc");
 // let tempCookie;
 let sigValue;
 
+// 0 route
+app.get("/", (req,res) => {
+    res.redirect("/login");
+});
+
 // 1st route to show the sign page
 app.get("/petition", (req, res) => {
     // the user must first register/login >>>> to be able to sign the petition
@@ -68,6 +73,7 @@ app.post("/petition", (req, res) => {
     } else {
         db.addSigner(signature, req.session.userId)
             .then(() => {
+                req.session.signed = "true";
                 res.redirect("/thanks");
             })
             // in case problem occured while writing to db >>>> show again the petition page
@@ -92,6 +98,7 @@ app.get("/thanks", (req, res) => {
         db.getSignature(req.session.userId)
         .then((dbResults) => {
             // Here means the user has signed already
+            req.session.signed = "true";
             sigValue = dbResults.rows[0].signature;
             res.render("thanks", {
                 sigValue,
@@ -110,15 +117,19 @@ app.get("/thanks", (req, res) => {
 
 // 4th route to show list of all signers
 app.get("/signers", (req, res) => {
+    console.log("req.session.signed", req.session.signed);
+    console.log("req.session.userId", req.session.userId);
+
     // ** check IF the user has not signed the petition >> redirect to /petition
-    if(req.session.signatureId === undefined) {
+    if(req.session.signed === undefined) {
         res.redirect("/petition");
     } else {
         db.getSigners()
         .then((dbResults) => {
             const allSigners = dbResults.rows;
             const totalNum = allSigners.length;
-            // console.log("all signers in db: ", allSigners);
+            // console.log("dbResults: ", allSigners);
+            // console.log("all signers in db: ", allSigners[2].row[2]);
             res.render("signers", {
                 allSigners,
                 totalNum,
@@ -169,7 +180,7 @@ app.post("/register", (req, res) => {
             req.session.userId = userId.rows[0].id;
             console.log("one more user was added to users table in petition db");
             // a new user who has just registered will be directed to sign the petition
-            res.redirect("/petition");
+            res.redirect("/profile");
         })
         // in case problem occured while writing to db >>>> show again the register page
         .catch((err) => {
@@ -274,5 +285,209 @@ app.get("/logout", (req, res) => {
     res.redirect("/login");
 })
 
+// 10th route to show the profile page
+app.get("/profile", (req, res) => {
+    // check IF the user has already registered or logged in 
+    if(req.session.userId !== undefined) {
+        res.render("profile", {
+            layout: "main",
+            headerMessage: "Welcome to My Petition Page",
+            title: "Petition"
+        })
+    } else {
+        res.redirect("/login");
+    }
+    
+})
 
+// 11th route to save profile data in my DB
+app.post("/profile", (req,res) => {
+    const age = req.body.age? req.body.age : null;
+    const city = req.body.city? req.body.city : null;
+    let homepage = (req.body.homepage && req.body.homepage.startsWith('http' || 'https'))? req.body.homepage : null;
+    console.log("age,city,homepage:",age,city,homepage);
+    // // homepage url validation
+    // if(!homepage.startsWith('http' || 'https')) {
+    //     homepage = null;
+    // }
+
+    db.profile(age, city, homepage, req.session.userId)
+        .then(() => {
+            res.redirect("/petition");
+        })
+        // in case problem occured while writing to db >>>> show again the profile page
+        .catch((err) => {
+            console.log("err in db.profile: ", err);
+            if(err.detail && err.detail.includes("already exists")) {
+                res.render("profile", {
+                    layout: "main",
+                    headerMessage: "Error occured in DB: We already saved your data!",
+                    title: "Petition"
+                })
+            } else {
+                res.render("profile", {
+                    layout: "main",
+                    headerMessage: "Error occured in DB.",
+                    title: "Petition"
+                })
+            }
+            
+        });
+})
+
+// 12th route to show list of all signers from 1 city
+app.get("/signers/:city", (req, res) => {
+    // ** check IF the user has not signed the petition >> redirect to /petition
+    if(req.session.signed === undefined) {
+        res.redirect("/petition");
+    } else {
+
+        db.getCity(req.params.city)
+        .then((dbResults) => {
+            const allSigners = dbResults.rows;
+            const totalNum = allSigners.length;
+            // console.log("dbResults: ", allSigners);
+            // console.log("all signers in db: ", allSigners[2].row[2]);
+            res.render("signers", {
+                allSigners,
+                totalNum,
+                layout: "main",
+                headerMessage: "Here is the full list of our signers:",
+                title: "Petition"
+            })
+        })
+        .catch((err) => {
+            console.log("err in db.getSigners: ", err);
+            // in case problem happened >>>> try again to load signers list
+            res.redirect("/signers");
+        });
+        
+    }
+});
+
+// 13th route to edit profile
+app.get("/profile/edit", (req, res) => {
+    // ** check IF the user has not signed the petition >> redirect to /petition
+    if(req.session.userId === undefined) {
+        res.redirect("/login");
+    } else {
+        db.getUser(req.session.userId)
+        .then((dbResults) => {
+            const user_data = dbResults.rows[0];
+            // console.log("user_data", user_data);
+            res.render("profile_edit", {
+                user_data,
+                layout: "main",
+                headerMessage: "your data",
+                title: "Petition"
+            })
+        })
+        .catch((err) => {
+            console.log("err in db.getUser: ", err);
+            // in case problem happened >>>> try again to load signers list
+            res.redirect("/profile/edit");
+        });
+        
+    }
+
+
+});
+
+// 14th route to save new profile data in DB
+app.post("/profile/edit", (req, res) => {
+    // ** check IF the user has not signed the petition >> redirect to /petition
+    if(req.session.userId === undefined) {
+        res.redirect("/login");
+    } else {
+        const {firstName, lastName, email, password, age, city, homepage} = req.body;
+        let homepageSafe = (homepage && homepage.startsWith('http' || 'https'))? homepage : null;
+
+        bc.hash(password)
+        .then((hashedPw) => {
+            db.editUser(req.session.userId,firstName, lastName, email, hashedPw)
+            .then((dbResults) => {
+                console.log("user data updated", req.session.userId);
+                db.editProfile(req.session.userId,age, city, homepageSafe)
+                .then((dbResults) => {
+                    console.log("profile data updated", req.session.userId);
+                    res.redirect("/thanks");
+                })
+                .catch((err) => {
+                    console.log("err in db.editProfile: ", err);
+                    // in case problem happened >>>> try again to load signers list
+                    res.redirect("/profile/edit");
+                });
+            })
+            .catch((err) => {
+                console.log("err in db.editUser: ", err);
+                // in case problem happened >>>> try again to load signers list
+                res.redirect("/profile/edit");
+            });
+            })  
+    }
+
+
+});
+
+// 15th route to delete signature
+app.post("/thanks", (req, res) => {
+    
+    db.deleteSignature(req.session.userId)
+    .then((dbResults) => {
+        console.log("signature deleted fir user id:", req.session.userId);
+        res.redirect("/petition");
+    })
+    .catch((err) => {
+        console.log("err in db.deleteSignature: ", err);
+        // in case problem happened >>>> try again to load signers list
+        res.redirect("/petition");
+    });
+});
+    
+// 16th route to delete the whole profile
+app.get("/profile/delete", (req, res) => {
+    res.send(`<h1>Please confirm deleting your profile</h1>
+            <form method="post">
+                <div class="nextBtn">
+                    <input type="submit" value="Delete">
+                </div>
+            </form>
+            `);
+});
+
+// 17th route to delete the whole profile
+app.post("/profile/delete", (req, res) => {
+    
+    db.deleteProfile(req.session.userId)
+    .then((dbResults) => {
+        console.log("profile deleted for user id:", req.session.userId);
+        db.deleteSignature(req.session.userId)
+        .then((dbResults) => {
+            console.log("signature deleted for user id:", req.session.userId);
+            db.deleteUser(req.session.userId)
+            .then((dbResults) => {
+                console.log("user deleted for user id:", req.session.userId);
+                // clear all cookies
+                req.session = null;
+                res.redirect("/login");
+            })
+            .catch((err) => {
+                console.log("err in db.deleteSignature: ", err);
+                // in case problem happened >>>> try again to load signers list
+                res.redirect("/login");
+            })
+        })
+        .catch((err) => {
+            console.log("err in db.deleteSignature: ", err);
+            // in case problem happened >>>> try again to load signers list
+            res.redirect("/login");
+        });
+    })
+    .catch((err) => {
+        console.log("err in db.deleteProfile: ", err);
+        // in case problem happened >>>> try again to load signers list
+        res.redirect("/login");
+    });
+});
+    
 app.listen(process.env.PORT || 8080, () => console.log("petition server is listening..."));

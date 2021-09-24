@@ -1,0 +1,40 @@
+<div class="intro">
+    <h2>Edit your profile</h2>
+</div>
+
+
+<form method="post">
+    <div class="firstName">
+        <label for="firstName">First name: </label>
+        <input type="text" name="firstName" id="firstName" value={{user_data.first}}>
+    </div>
+    <div class="lastName">
+        <label for="lastName">Last name: </label>
+        <input type="text" name="lastName" id="lastName" value={{user_data.last}}>
+    </div>
+    <div class="email">
+        <label for="email">Email: </label>
+        <input type="text" name="email" id="email" value={{user_data.email}}>
+    </div>
+    <div class="password">
+        <label for="password">password: </label>
+        <input type="password" name="password" id="password">
+    </div>
+    
+    <div class="age">
+        <label for="age">Age: </label>
+        <input type="number" name="age" id="age" value={{user_data.age}}>
+    </div>
+    <div class="city">
+        <label for="city">city: </label>
+        <input type="text" name="city" id="city" value={{user_data.city}}>
+    </div>
+    <div class="url">
+        <label for="homepage">Homepage: </label>
+        <input type="text" name="homepage" id="homepage" value={{user_data.url}}>
+    </div>
+    
+    <div class="nextBtn">
+        <input type="submit" value="Update">
+    </div>
+</form>
