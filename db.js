@@ -38,18 +38,21 @@ module.exports.getUsers = () => {
 };
 
 module.exports.getRegisterId = (email) => {
-    const q = `SELECT id FROM users WHERE email='${email}'`;
-    return db.query(q);
+    const q = `SELECT id FROM users WHERE email=$1`;
+    const params = [email];
+    return db.query(q, params);
 };
 
 module.exports.getHashedPw = (email) => {
-    const q = `SELECT password FROM users WHERE email='${email}'`;
-    return db.query(q);
+    const q = `SELECT password FROM users WHERE email=$1`;
+    const params = [email];
+    return db.query(q, params);
 };
 
 module.exports.getSignature = (userId) => {
-    const q = `SELECT signature FROM signatures WHERE user_id = ${userId}`;
-    return db.query(q);
+    const q = `SELECT signature FROM signatures WHERE user_id = $1`;
+    const params = [userId];
+    return db.query(q, params);
 };
 
 module.exports.profile = (age, city, url, user_id) => {

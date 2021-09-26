@@ -3,6 +3,12 @@ const app = express();
 // for body parsing from the POST request
 app.use(express.urlencoded({ extended: false }));
 
+// security against clickjacking attacks
+const helmet = require('helmet');
+app.use(helmet());
+app.use(helmet.frameguard({ action: 'DENY' }));
+
+
 
 const hb = require("express-handlebars")
 app.engine("handlebars", hb())
@@ -11,10 +17,12 @@ app.set("view engine", "handlebars")
 // for serving files inside public
 app.use(express.static("public"))
 
+// CSRF security
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
     secret: `I'm always angry.`,
-    maxAge: 1000 * 60 * 60 * 24 * 14
+    maxAge: 1000 * 60 * 60 * 24 * 14,
+    sameSite: true
 }));
 
 const db = require("./db.js");
