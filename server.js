@@ -3,10 +3,10 @@ const app = express();
 // for body parsing from the POST request
 app.use(express.urlencoded({ extended: false }));
 
-// security against clickjacking attacks
-const helmet = require('helmet');
-app.use(helmet());
-app.use(helmet.frameguard({ action: 'DENY' }));
+// ?causes problem with jquery? security against clickjacking attacks
+// const helmet = require('helmet');
+// app.use(helmet());
+// app.use(helmet.frameguard({ action: 'DENY' }));
 
 
 
