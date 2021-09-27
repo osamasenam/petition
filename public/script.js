@@ -7,7 +7,7 @@ const ctx = can.getContext('2d');
 // let sig;
 
 can1.on("mousedown", function(e) {
-    console.log("mousemove running");
+    // console.log("mousemove running");
     // updating position
     currentX = e.clientX;
     currentY = e.clientY;
@@ -22,7 +22,7 @@ can1.on("mouseup", function () {
 });
 
 function draw (e) {
-    console.log("drawing now");
+    // console.log("drawing now");
     
     ctx.beginPath(); 
     ctx.moveTo(currentX - can.getBoundingClientRect().left, currentY - can.getBoundingClientRect().top);
