@@ -7,10 +7,8 @@ Petition online
 
 - The signers can be sorted according to the city
 
-![alt text](https://developer-osama.herokuapp.com/petition1.png)
-![alt text](https://developer-osama.herokuapp.com/petition2.png)
-![alt text](https://developer-osama.herokuapp.com/petition3.png)
-![alt text](https://developer-osama.herokuapp.com/petition4.png)
-![alt text](https://developer-osama.herokuapp.com/petition5.png)
-![alt text](https://developer-osama.herokuapp.com/petition6.png)
+![petition1](https://github.com/osamasenam/petition/assets/71031601/c293274c-33e4-44a4-b3eb-2ad5f8e4c335)
 
+![petition2](https://github.com/osamasenam/petition/assets/71031601/88125746-5c86-473d-a3a9-5c81b43238ed)
+
+![petition4](https://github.com/osamasenam/petition/assets/71031601/a2b5cb2e-5e0f-43ac-9d33-78615d9c5712)
